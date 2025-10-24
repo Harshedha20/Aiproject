@@ -7,3 +7,4 @@ This project automatically filters resumes based on job description similarity u
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
+
