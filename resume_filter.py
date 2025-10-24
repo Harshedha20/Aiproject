@@ -1,15 +1,16 @@
+
 import os
 import heapq
 import PyPDF2
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import nltk
+import streamlit as st
 
 # -----------------------------
 # Download necessary NLTK data
 # -----------------------------
 nltk.download('punkt', quiet=True)
-nltk.download('punkt_tab', quiet=True)
 nltk.download('stopwords', quiet=True)
 
 # -----------------------------
@@ -19,6 +20,11 @@ RESUME_FOLDER = "resumes"
 TOP_K = 2  # Top N resumes to select
 THRESHOLD = 0.10  # minimum similarity to be considered selected
 
+# -----------------------------
+# Streamlit UI
+# -----------------------------
+st.title("📄 Resume Filter")
+st.write("Upload resumes in the 'resumes' folder and provide a job description in 'job_description.txt'.")
 
 # -----------------------------
 # Load resumes from folder
@@ -37,9 +43,8 @@ def load_resumes():
                     resumes.append(text.strip())
                     file_names.append(file)
             except:
-                print(f"⚠️ Could not read {file}")
+                st.warning(f"⚠️ Could not read {file}")
     return resumes, file_names
-
 
 # -----------------------------
 # Load Job Description
@@ -47,7 +52,6 @@ def load_resumes():
 def load_job_description():
     with open("job_description.txt", "r", encoding="utf-8") as f:
         return f.read()
-
 
 # -----------------------------
 # Extract candidate name (first line of resume text)
@@ -58,16 +62,15 @@ def extract_name(text, filename):
     first_line = text.strip().split("\n")[0]
     return first_line if len(first_line) < 50 else filename.replace(".pdf", "")
 
-
 # -----------------------------
 # Main filtering function
 # -----------------------------
 def filter_resumes():
-    print("⏳ Processing resumes...\n")
-
+    st.info("⏳ Processing resumes...")
+    
     resumes, file_names = load_resumes()
     if not resumes:
-        print("⚠️ No resumes found in folder.")
+        st.warning("⚠️ No resumes found in folder.")
         return
 
     job_desc = load_job_description()
@@ -80,7 +83,6 @@ def filter_resumes():
     # Get top K resumes
     top_indices = heapq.nlargest(TOP_K, range(len(similarity_scores)), key=similarity_scores.__getitem__)
 
-    print("✅ Top Matching Resumes:\n")
     selected = []
     rejected = []
 
@@ -91,16 +93,17 @@ def filter_resumes():
         else:
             rejected.append(f"❌ {candidate_name} - Rejected (Similarity: {score:.4f})")
 
-    # Print final result
+    # Display results in Streamlit
+    st.subheader("✅ Top Matching Resumes:")
     for s in selected:
-        print(s)
-    print("\n❌ Rejected Resumes:\n")
+        st.success(s)
+    
+    st.subheader("❌ Rejected Resumes:")
     for r in rejected:
-        print(r)
-
+        st.error(r)
 
 # -----------------------------
 # Run script
 # -----------------------------
-if __name__ == "__main__":
+if st.button("Run Resume Filter"):
     filter_resumes()
