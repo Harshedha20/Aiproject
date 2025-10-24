@@ -1,7 +1,10 @@
+pip install --upgrade pip setuptools wheel
 streamlit==1.26.0
 PyPDF2
 scikit-learn
 numpy
 pandas
 nltk
+
+
 
